@@ -6,6 +6,13 @@ static int isAtEnd(Lexer* lexer) {
     return *lexer->current == '\0';
 }
 
+void skipWhitespace(Lexer* lexer){
+    while (*lexer->current == ' '){
+        lexer->current++;
+    }
+}
+
+
 static char advance(Lexer* lexer) {
     lexer->current++;
     return lexer->current[-1];
@@ -36,6 +43,8 @@ void initLexer(Lexer* lexer, const char* source) {
 }
 
 Token scanToken(Lexer* lexer) {
+    skipWhitespace(lexer);
+
     lexer->start = lexer->current;
 
     if (isAtEnd(lexer)) return makeToken(lexer, TOKEN_EOF);
