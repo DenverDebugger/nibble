@@ -101,7 +101,7 @@ static Token identifier(Lexer* lexer) {
 
 static Token string(Lexer* lexer) {
     while(*lexer->current != '"' && !isAtEnd(lexer)) {
-        if (*lexer->current != '\n') lexer->line++;
+        if (*lexer->current == '\n') lexer->line++;
         advance(lexer);
     }
 
