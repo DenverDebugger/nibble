@@ -2,7 +2,7 @@
 #include "lexer.h"
 
 int main(void) {
-    const char* source = "let x = 5 + 3;";
+    const char* source = "let x = 5 + 2";
 
     Lexer lexer;
     initLexer(&lexer, source);

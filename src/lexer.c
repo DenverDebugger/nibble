@@ -6,16 +6,41 @@ static int isAtEnd(Lexer* lexer) {
     return *lexer->current == '\0';
 }
 
-void skipWhitespace(Lexer* lexer){
-    while (*lexer->current == ' '){
-        lexer->current++;
-    }
-}
+static int match(Lexer* lexer, char expected) {
+    if (isAtEnd(lexer)) return 0;
+    if (*lexer->current != expected) return 0;
 
+    lexer->current++;
+    return 1;
+}
 
 static char advance(Lexer* lexer) {
     lexer->current++;
     return lexer->current[-1];
+}
+
+
+static void skipWhitespace(Lexer* lexer){
+    for (;;) {
+        char c = *lexer->current;
+
+        switch(c) {
+            case ' ':
+            case '\r':
+            case '\t':
+                advance(lexer);
+                break;
+
+            case '\n':
+                lexer->line++;
+                advance(lexer);
+                break;
+
+
+            default:
+                return;
+        }
+    }
 }
 
 static Token makeToken(Lexer* lexer, TokenType type) {
@@ -42,6 +67,54 @@ void initLexer(Lexer* lexer, const char* source) {
     lexer->line = 1;
 }
 
+static int isAlpha(char c) {
+    return isalpha(c) || c == '_';
+}
+
+static int isDigit(char c) {
+    return isdigit(c);
+}
+
+static Token number(Lexer* lexer) {
+    while (isdigit(*lexer->current)) {
+        advance(lexer);
+    }
+    return makeToken(lexer, TOKEN_NUMBER);
+}
+
+static TokenType identifierType(Lexer* lexer) {
+    int length = (int)(lexer->current - lexer->start);
+
+    if (length == 3 && memcmp(lexer->start, "let", 3) == 0) {
+        return TOKEN_LET;
+    }
+
+    return TOKEN_IDENTIFIER;
+}
+
+static Token identifier(Lexer* lexer) {
+    while (isAlpha(*lexer->current) || isDigit(*lexer->current)) {
+        advance(lexer);
+    }
+    return makeToken(lexer, identifierType(lexer));
+}
+
+static Token string(Lexer* lexer) {
+    while(*lexer->current != '"' && !isAtEnd(lexer)) {
+        if (*lexer->current != '\n') lexer->line++;
+        advance(lexer);
+    }
+
+    if (isAtEnd(lexer)) {
+        return errorToken(lexer, "unterminated string.");
+    }
+
+    // consume closing "
+    advance(lexer);
+
+    return makeToken(lexer, TOKEN_STRING);
+}
+
 Token scanToken(Lexer* lexer) {
     skipWhitespace(lexer);
 
@@ -51,15 +124,30 @@ Token scanToken(Lexer* lexer) {
 
     char c = advance(lexer);
 
+    if (isAlpha(c)) return identifier(lexer);
+    if (isDigit(c)) return number(lexer);
+
     switch(c) {
         case '(': return makeToken(lexer, TOKEN_LEFT_PAREN);
         case ')': return makeToken(lexer, TOKEN_RIGHT_PAREN);
         case '+': return makeToken(lexer, TOKEN_PLUS);
         case '-': return makeToken(lexer, TOKEN_MINUS);
         case '*': return makeToken(lexer, TOKEN_STAR);
-        case '/': return makeToken(lexer, TOKEN_SLASH);
-        case '=': return makeToken(lexer, TOKEN_EQUAL);
+        case '/': 
+            if(match(lexer, '/')){
+                while(*lexer->current != '\n' && !isAtEnd(lexer)) {
+                    advance(lexer);
+                }
+                return scanToken(lexer);
+            }
+            return makeToken(lexer, TOKEN_SLASH);
+        case '=': 
+            return makeToken(lexer, match(lexer, '=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
         case ';': return makeToken(lexer, TOKEN_SEMICOLON);
+        case '!': return makeToken(lexer, match(lexer, '=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
+        case '<': return makeToken(lexer, match(lexer, '=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
+        case '>': return makeToken(lexer, match(lexer, '=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+        case '"': return string(lexer);
     }
 
     return errorToken(lexer, "unexpected character.");
