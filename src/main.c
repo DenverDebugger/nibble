@@ -1,22 +1,19 @@
 #include <stdio.h>
 #include "lexer.h"
+#include "parser.h"
 
 int main(void) {
     const char* source = "let x = 5 + 2";
 
-    Lexer lexer;
-    initLexer(&lexer, source);
+    Parser parser;
+    initParser(&parser, source);
 
-    for (;;) {
-        Token token = scanToken(&lexer);
+    parse(&parser);
 
-        printf("type=%d text='%.*s'\n",
-                token.type,
-                token.length,
-                token.start);
+   if (parser.hadError) {
+       return 1;
+   }
 
-        if (token.type == TOKEN_EOF) break;
-    }
-
+   printf("Parse succeeded.\n");
     return 0;
 }
