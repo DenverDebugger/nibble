@@ -6,14 +6,6 @@ static int isAtEnd(Lexer* lexer) {
     return *lexer->current == '\0';
 }
 
-static int match(Lexer* lexer, char expected) {
-    if (isAtEnd(lexer)) return 0;
-    if (*lexer->current != expected) return 0;
-
-    lexer->current++;
-    return 1;
-}
-
 static char advance(Lexer* lexer) {
     lexer->current++;
     return lexer->current[-1];
@@ -99,22 +91,6 @@ static Token identifier(Lexer* lexer) {
     return makeToken(lexer, identifierType(lexer));
 }
 
-static Token string(Lexer* lexer) {
-    while(*lexer->current != '"' && !isAtEnd(lexer)) {
-        if (*lexer->current == '\n') lexer->line++;
-        advance(lexer);
-    }
-
-    if (isAtEnd(lexer)) {
-        return errorToken(lexer, "unterminated string.");
-    }
-
-    // consume closing "
-    advance(lexer);
-
-    return makeToken(lexer, TOKEN_STRING);
-}
-
 Token scanToken(Lexer* lexer) {
     skipWhitespace(lexer);
 
@@ -128,26 +104,9 @@ Token scanToken(Lexer* lexer) {
     if (isDigit(c)) return number(lexer);
 
     switch(c) {
-        case '(': return makeToken(lexer, TOKEN_LEFT_PAREN);
-        case ')': return makeToken(lexer, TOKEN_RIGHT_PAREN);
         case '+': return makeToken(lexer, TOKEN_PLUS);
-        case '-': return makeToken(lexer, TOKEN_MINUS);
-        case '*': return makeToken(lexer, TOKEN_STAR);
-        case '/': 
-            if(match(lexer, '/')){
-                while(*lexer->current != '\n' && !isAtEnd(lexer)) {
-                    advance(lexer);
-                }
-                return scanToken(lexer);
-            }
-            return makeToken(lexer, TOKEN_SLASH);
-        case '=': 
-            return makeToken(lexer, match(lexer, '=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
+        case '=': return makeToken(lexer, TOKEN_EQUAL); 
         case ';': return makeToken(lexer, TOKEN_SEMICOLON);
-        case '!': return makeToken(lexer, match(lexer, '=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
-        case '<': return makeToken(lexer, match(lexer, '=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
-        case '>': return makeToken(lexer, match(lexer, '=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
-        case '"': return string(lexer);
     }
 
     return errorToken(lexer, "unexpected character.");

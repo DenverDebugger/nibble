@@ -34,6 +34,37 @@ static void consume(Parser* parser, TokenType type, const char* message) {
     errorAtCurrent(parser, message);
 }
 
+static void expression(Parser* parser) {
+    if (match(parser, TOKEN_NUMBER)) {
+        return;
+    }
+
+    if (match(parser, TOKEN_IDENTIFIER)) {
+        return;
+    }
+
+    errorAtCurrent(parser, "expected expression");
+}
+
+static void declaration(Parser* parser) {
+    consume(parser, TOKEN_LET, "expected 'let'");
+    consume(parser, TOKEN_IDENTIFIER, "expected variable name");
+    consume(parser, TOKEN_EQUAL, "expected '='");
+
+    expression(parser);
+
+    consume(parser, TOKEN_SEMICOLON, "expected ';'");
+}
+
+static void letDeclaration(Parser* parser) {
+    consume(parser, TOKEN_IDENTIFIER, "expected variable name.");
+    consume(parser, TOKEN_EQUAL, "expected '=' after variable name.");
+
+    expression(parser);
+
+    consume(parser, TOKEN_SEMICOLON, "expected ';' after declaration.");
+}
+
 void initParser(Parser* parser, const char* source) {
     initLexer(&parser->lexer, source);
 
@@ -45,13 +76,12 @@ void initParser(Parser* parser, const char* source) {
     parser->current.line = 1;
 
     parser->previous = parser->current;
-
     advance(parser);
 }
 
 void parse(Parser* parser) {
-    while (!match(parser, TOKEN_EOF)) {
-        advance(parser);
+    while (!check(parser, TOKEN_EOF)) {
+        declaration(parser); // top level of the grammar
     }
 }
 
