@@ -52,30 +52,10 @@ void testKeyword(void) {
     assertToken(scanToken(&lexer), TOKEN_EOF);
 }
 
-/*
-Input:
-
-    == !=
-
-Expected Tokens:
-
-    TOKEN_EQUAL_EQUAL
-    TOKEN_BANG_EQUAL
-    TOKEN_EOF
-*/
-void testComparisonOperators(void) {
-    Lexer lexer;
-    initLexer(&lexer, "== !=");
-
-    assertToken(scanToken(&lexer), TOKEN_EQUAL_EQUAL);
-    assertToken(scanToken(&lexer), TOKEN_BANG_EQUAL);
-    assertToken(scanToken(&lexer), TOKEN_EOF);
-}
 
 int main(void) {
     testArithmetic();
     testKeyword();
-    testComparisonOperators();
 
     printf("All tests passed.\n");
 

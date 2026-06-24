@@ -1,8 +1,8 @@
 all:
-	gcc src/main.c src/lexer.c src/parser.c -o dsl
+	gcc src/main.c src/lexer.c src/parser.c src/ast.c -o dsl
 
 debug:
-	gcc -g src/main.c src/lexer.c -o dsl
+	gcc -g src/main.c src/lexer.c src/ast.c -o dsl
 
 run:
 	./dsl
