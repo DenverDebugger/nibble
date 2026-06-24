@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "ast.h"
 
 #include <stdio.h>
 
@@ -34,16 +35,28 @@ static void consume(Parser* parser, TokenType type, const char* message) {
     errorAtCurrent(parser, message);
 }
 
-static void expression(Parser* parser) {
+static Expr* primary(Parser* parser) {
     if (match(parser, TOKEN_NUMBER)) {
-        return;
+        return newNumberExpr(parser->previous);
     }
 
     if (match(parser, TOKEN_IDENTIFIER)) {
-        return;
+        return newVariableExpr(parser->previous);
     }
 
     errorAtCurrent(parser, "expected expression");
+    return NULL;
+}
+
+static Expr* expression(Parser* parser) {
+    Expr* expr =  primary(parser);
+
+    while (match(parser, TOKEN_PLUS)) {
+        Token operator = parser->previous;
+        Expr* right = primary(parser);
+        expr = newBinaryExpr(expr, operator, right);
+    }
+    return expr;
 }
 
 static void declaration(Parser* parser) {
@@ -60,7 +73,7 @@ static void letDeclaration(Parser* parser) {
     consume(parser, TOKEN_IDENTIFIER, "expected variable name.");
     consume(parser, TOKEN_EQUAL, "expected '=' after variable name.");
 
-    expression(parser);
+    Expr* initializer = expression(parser);
 
     consume(parser, TOKEN_SEMICOLON, "expected ';' after declaration.");
 }
@@ -79,9 +92,13 @@ void initParser(Parser* parser, const char* source) {
     advance(parser);
 }
 
-void parse(Parser* parser) {
+Expr*  parse(Parser* parser) {
+    Expr* expr = expression(parser);
+
     while (!check(parser, TOKEN_EOF)) {
-        declaration(parser); // top level of the grammar
+       errorAtCurrent(parser, "expected end of input."); 
     }
+
+    return expr;
 }
 
