@@ -107,6 +107,11 @@ Token scanToken(Lexer* lexer) {
         case '+': return makeToken(lexer, TOKEN_PLUS);
         case '=': return makeToken(lexer, TOKEN_EQUAL); 
         case ';': return makeToken(lexer, TOKEN_SEMICOLON);
+        case '(': return makeToken(lexer, TOKEN_LEFT_PAREN);
+        case ')': return makeToken(lexer, TOKEN_RIGHT_PAREN);
+        case '-': return makeToken(lexer, TOKEN_MINUS);
+        case '*': return makeToken(lexer, TOKEN_STAR);
+        case '/': return makeToken(lexer, TOKEN_SLASH);
     }
 
     return errorToken(lexer, "unexpected character.");

@@ -3,6 +3,11 @@
 
 #include <stdio.h>
 
+static Expr* expression(Parser* parser);
+static Expr* term(Parser* parser);
+static Expr* factor(Parser* parser);
+static Expr* primary(Parser* parser);
+
 static void advance(Parser* parser) {
     parser->previous = parser->current;
     parser->current = scanToken(&parser->lexer);
@@ -35,6 +40,32 @@ static void consume(Parser* parser, TokenType type, const char* message) {
     errorAtCurrent(parser, message);
 }
 
+static Expr* factor(Parser* parser) {
+    Expr* expr = primary(parser);
+
+    while (match(parser, TOKEN_STAR) || match(parser, TOKEN_SLASH)) {
+        Token operator = parser->previous;
+        Expr* right = primary(parser);
+        expr = newBinaryExpr(expr, operator, right);
+    }
+    return expr;
+}
+
+static Expr* term(Parser* parser) {
+    Expr* expr = factor(parser);
+
+    while (match(parser, TOKEN_PLUS) || match(parser, TOKEN_MINUS)) {
+        Token operator = parser->previous;
+        Expr* right = factor(parser);
+        expr = newBinaryExpr(expr, operator, right);
+    }
+    return expr;
+}
+
+static Expr* expression(Parser* parser) {
+    return term(parser);
+}
+
 static Expr* primary(Parser* parser) {
     if (match(parser, TOKEN_NUMBER)) {
         return newNumberExpr(parser->previous);
@@ -44,19 +75,14 @@ static Expr* primary(Parser* parser) {
         return newVariableExpr(parser->previous);
     }
 
+    if (match(parser, TOKEN_LEFT_PAREN)) {
+        Expr* expr = expression(parser);
+        consume(parser, TOKEN_RIGHT_PAREN, "expected ')' after expression.");
+        return expr;
+    }
+
     errorAtCurrent(parser, "expected expression");
     return NULL;
-}
-
-static Expr* expression(Parser* parser) {
-    Expr* expr =  primary(parser);
-
-    while (match(parser, TOKEN_PLUS)) {
-        Token operator = parser->previous;
-        Expr* right = primary(parser);
-        expr = newBinaryExpr(expr, operator, right);
-    }
-    return expr;
 }
 
 static void declaration(Parser* parser) {

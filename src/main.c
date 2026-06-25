@@ -4,7 +4,7 @@
 #include "ast.h"
 
 int main(void) {
-    const char* source = "1 + 2 + 3";
+    const char* source = "1 + 2 * 3";
 
     Parser parser;
     initParser(&parser, source);

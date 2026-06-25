@@ -2,7 +2,13 @@
 #define TOKEN_H
 
 typedef enum {
+    TOKEN_RIGHT_PAREN,
+    TOKEN_LEFT_PAREN,
+    
     TOKEN_PLUS,
+    TOKEN_MINUS,
+    TOKEN_STAR,
+    TOKEN_SLASH,
     TOKEN_EQUAL,
     TOKEN_SEMICOLON,
 
