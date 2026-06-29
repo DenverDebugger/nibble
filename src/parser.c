@@ -199,7 +199,7 @@ void initParser(Parser* parser, const char* source) {
 Expr*  parse(Parser* parser) {
     Expr* expr = expression(parser);
 
-    while (!check(parser, TOKEN_EOF)) {
+    if (!check(parser, TOKEN_EOF)) {
        errorAtCurrent(parser, "expected end of input."); 
     }
 
