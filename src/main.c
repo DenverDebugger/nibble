@@ -1,28 +1,41 @@
 #include <stdio.h>
+#include <string.h>
+
 #include "lexer.h"
 #include "parser.h"
 #include "ast.h"
+#include "interpreter.h"
 
 int main(void) {
-    const char* source = "1 + 2 * 3";
+    printf("Nibble: A small expression REPL.\n");
+    printf("Type an expression, or 'exit' to quit.\n");
+    char line[1024];
 
-    Parser parser;
-    initParser(&parser, source);
+    while(1) {
+        printf("> ");
 
-    Expr* expr = parse(&parser);
+        if (fgets(line, sizeof(line), stdin) == NULL) {
+            break;
+        }
 
-   if (parser.hadError) {
-       printf("parse failed.\n");
-       freeExpr(expr);
-       return 1;
-   }
+        if (strcmp(line, "exit\n") == 0) {
+            break;
+        }
 
-   printf("AST: ");
-   printExpr(expr);
-   printf("\n");
+        Parser parser;
+        initParser(&parser, line);
 
-   freeExpr(expr);
+        Expr* expr = parse(&parser);
 
-   return 0;
+        printf("AST: ");
+        printExpr(expr);
+        printf("\n");
+
+        double result = evalExpr(expr);
+        printf("= %g\n", result);
+
+        freeExpr(expr);
+    }
+    return 0;
 }
 
