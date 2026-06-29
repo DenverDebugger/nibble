@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Evaluates an expression tree and returns its numeric result.
+ * 
+ * @param expr The expression tree to evaluate.
+ * @return double The computed numerical value of the expression.
+ */
 double evalExpr(Expr* expr) {
     switch (expr->type) {
         case EXPR_NUMBER:

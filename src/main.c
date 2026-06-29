@@ -6,6 +6,14 @@
 #include "ast.h"
 #include "interpreter.h"
 
+/**
+ * @brief Main entry point of the Nibble REPL.
+ * 
+ * Repeatedly prompts the user for an expression, parses it, prints its AST representation,
+ * evaluates it, and prints the numerical result. Exits when the user types 'exit' or at EOF.
+ * 
+ * @return int Exit status code (0 for success).
+ */
 int main(void) {
     printf("Nibble: A small expression REPL.\n");
     printf("Type an expression, or 'exit' to quit.\n");
