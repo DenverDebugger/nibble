@@ -1,7 +1,38 @@
 #include <stdio.h>
+#include <string.h>
 #include "../src/lexer.h"
 #include "../src/parser.h"
 #include "../src/ast.h"
+
+static void exprToString(Expr* expr, char* buf, int* offset, int maxLen) {
+    if (expr == NULL || *offset >= maxLen - 1) return;
+    if (expr->type == EXPR_NUMBER) {
+        int len = expr->as.number.length;
+        if (*offset + len < maxLen) {
+            memcpy(buf + *offset, expr->as.number.start, len);
+            *offset += len;
+        }
+    } else if (expr->type == EXPR_VARIABLE) {
+        int len = expr->as.variable.length;
+        if (*offset + len < maxLen) {
+            memcpy(buf + *offset, expr->as.variable.start, len);
+            *offset += len;
+        }
+    } else if (expr->type == EXPR_BINARY) {
+        if (*offset + 1 < maxLen) buf[(*offset)++] = '(';
+        int opLen = expr->as.binary.operator.length;
+        if (*offset + opLen < maxLen) {
+            memcpy(buf + *offset, expr->as.binary.operator.start, opLen);
+            *offset += opLen;
+        }
+        if (*offset + 1 < maxLen) buf[(*offset)++] = ' ';
+        exprToString(expr->as.binary.left, buf, offset, maxLen);
+        if (*offset + 1 < maxLen) buf[(*offset)++] = ' ';
+        exprToString(expr->as.binary.right, buf, offset, maxLen);
+        if (*offset + 1 < maxLen) buf[(*offset)++] = ')';
+    }
+    buf[*offset] = '\0';
+}
 
 static int runParseTest(const char* source, const char* expectedShape) {
     Parser parser;
@@ -14,16 +45,25 @@ static int runParseTest(const char* source, const char* expectedShape) {
 
     if (parser.hadError || expr == NULL) {
         printf("Actual:   parse failed\n");
-        freeExpr(expr);
+        if (expr != NULL) freeExpr(expr);
         return 0;
     }
 
-    printf("Actual:   ");
-    printExpr(expr);
-    printf("\n");
+    char actualShape[1024] = {0};
+    int offset = 0;
+    exprToString(expr, actualShape, &offset, sizeof(actualShape));
+
+    printf("Actual:   %s\n", actualShape);
+
+    int success = (strcmp(actualShape, expectedShape) == 0);
+    if (!success) {
+        printf("RESULT:   FAIL (mismatch)\n");
+    } else {
+        printf("RESULT:   PASS\n");
+    }
 
     freeExpr(expr);
-    return 1;
+    return success;
 }
 
 int main(void) {
